@@ -1,8 +1,8 @@
 ﻿using DrunkCompany.Scripts;
 using GameNetcodeStuff;
+using DrunkCompany;
 using HarmonyLib;
-using JetBrains.Annotations;
-using Unity.Services.Authentication.Internal;
+
 
 
 namespace DrunkCompany.Patches

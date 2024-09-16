@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
+using DrunkCompany;
 
 namespace DrunkCompany.Scripts
 {
@@ -12,7 +13,7 @@ namespace DrunkCompany.Scripts
     {
         internal static List<PlayerControllerB> currentPlayers = new List<PlayerControllerB>();
 
-        internal static List<PlayerControllerB> deadPlayers = new List<PlayerControllerB>();
+        internal static List<string> deadPlayers = new List<string>();
 
 
         [ClientRpc]
@@ -23,17 +24,16 @@ namespace DrunkCompany.Scripts
 			DrunkCompany.Logger.LogMessage($"This the current list {currentPlayers}");
             HUDManager.Instance.DisplayTip("The captain", $"{name} has be designated.");
 
-
-
         }
 
         public static void DetermineCaptain()
         {
 			DrunkCompany.Logger.LogMessage("Determine Captain function was ran");
-
+            deadPlayers.Clear();
             currentPlayers.Clear();
 
-            foreach (PlayerControllerB player in StartOfRound.Instance.allPlayerScripts)
+			PlayerControllerB[] allPlayerScripts = StartOfRound.Instance.allPlayerScripts;
+			foreach (PlayerControllerB player in allPlayerScripts)
             {
                 if (!player.isPlayerControlled || player.isPlayerDead) { continue; }
                 {
@@ -42,7 +42,7 @@ namespace DrunkCompany.Scripts
                 }
             }
 
-            var Captain = currentPlayers[Random.Range(0, currentPlayers.Count())];
+            PlayerControllerB Captain = currentPlayers[Random.Range(0, currentPlayers.Count())];
 
             PingClientRpc(Captain.playerUsername);
 
@@ -53,10 +53,13 @@ namespace DrunkCompany.Scripts
         public static void DeathWarningClientRpc(int playerId)
         {
             PlayerControllerB firstDeath = currentPlayers[playerId];
-            if (deadPlayers.Count() > 0)
+			DrunkCompany.Logger.LogMessage($"The amount of dead players currently {deadPlayers.Count()}");
+			DrunkCompany.Logger.LogMessage($"This is the playerId {firstDeath.playerUsername}");
+			DrunkCompany.Logger.LogMessage($"This is the playerId {currentPlayers[playerId]}");
+			if (deadPlayers.Count() == 0)
             {
                 HUDManager.Instance.DisplayTip("Someone has died", "This is their name " + firstDeath.playerUsername, isWarning: true);
-                deadPlayers.Add(firstDeath);
+                deadPlayers.Add(firstDeath.playerUsername);
             }
             //StartOfRound instance = StartOfRound.Instance;
 

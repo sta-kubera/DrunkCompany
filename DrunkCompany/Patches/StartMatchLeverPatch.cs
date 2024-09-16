@@ -1,24 +1,18 @@
-using BepInEx.Logging;
 using DrunkCompany.Scripts;
-using GameNetcodeStuff;
+using DrunkCompany;
 using HarmonyLib;
-using System.Collections.Generic;
-using System.Xml.Linq;
 
 
 namespace DrunkCompany.Patches
 {
-
-    internal class StartMatchLeverPatch
+	[HarmonyPatch(typeof(StartOfRound))]
+	internal class StartMatchLeverPatch
 	{
-		
-		[HarmonyPatch(typeof(StartOfRound))]
-		
-
 		[HarmonyPatch("OnShipLandedMiscEvents")]
-		[HarmonyPostfix]
+		[HarmonyPrefix]
 		public static void SendingMessagePatch()
 		{
+			DrunkCompany.Logger.LogMessage("This is a test");
 			DrunkCompany.Logger.LogMessage("sending message function ran");
 			NetworkManager.DetermineCaptain();
 		}

@@ -1,19 +1,20 @@
 using BepInEx;
 using BepInEx.Logging;
-using DrunkCompany;
 using HarmonyLib;
-
+using DrunkCompany;
 using static BepInEx.BepInDependency;
 
 namespace DrunkCompany
 {
 	[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 	[BepInDependency(StaticNetcodeLib.StaticNetcodeLib.Guid, DependencyFlags.HardDependency)]
+	[BepInDependency("x753.More_Suits", DependencyFlags.HardDependency)]
+
 	public class DrunkCompany : BaseUnityPlugin
 	{
 		private const string GUID = "sta.drunkcompany";
 		private const string NAME = "DrunkCompany";
-		private const string VERSION = "1.0.";
+		private const string VERSION = "1.0.0";
 		public static DrunkCompany Instance { get; private set; } = null!;
 		internal new static ManualLogSource Logger { get; private set; } = null!;
 		internal static Harmony? Harmony { get; set; }
