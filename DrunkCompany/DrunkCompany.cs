@@ -1,0 +1,51 @@
+using BepInEx;
+using BepInEx.Logging;
+using DrunkCompany;
+using HarmonyLib;
+
+using static BepInEx.BepInDependency;
+
+namespace DrunkCompany
+{
+	[BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+	[BepInDependency(StaticNetcodeLib.StaticNetcodeLib.Guid, DependencyFlags.HardDependency)]
+	public class DrunkCompany : BaseUnityPlugin
+	{
+		private const string GUID = "sta.drunkcompany";
+		private const string NAME = "DrunkCompany";
+		private const string VERSION = "1.0.";
+		public static DrunkCompany Instance { get; private set; } = null!;
+		internal new static ManualLogSource Logger { get; private set; } = null!;
+		internal static Harmony? Harmony { get; set; }
+
+		private void Awake()
+		{
+			Logger = base.Logger;
+			Instance = this;
+
+			Patch();
+
+			Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
+		}
+
+		internal static void Patch()
+		{
+			Harmony ??= new Harmony(MyPluginInfo.PLUGIN_GUID);
+
+			Logger.LogDebug("Patching...");
+
+			Harmony.PatchAll();
+
+			Logger.LogDebug("Finished patching!");
+		}
+
+		internal static void Unpatch()
+		{
+			Logger.LogDebug("Unpatching...");
+
+			Harmony?.UnpatchSelf();
+
+			Logger.LogDebug("Finished unpatching!");
+		}
+	}
+}
