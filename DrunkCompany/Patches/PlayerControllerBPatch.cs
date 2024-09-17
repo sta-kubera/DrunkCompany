@@ -10,7 +10,7 @@ namespace DrunkCompany.Patches
     [HarmonyPatch(typeof(PlayerControllerB))]
 	internal class PlayerControllerBPatch
 	{
-		
+		//Listens for the first player to die each round
 		
 		[HarmonyPatch("KillPlayerServerRpc")]
 		[HarmonyPrefix]
