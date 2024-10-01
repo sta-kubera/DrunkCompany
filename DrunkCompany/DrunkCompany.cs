@@ -3,6 +3,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using DrunkCompany;
 using static BepInEx.BepInDependency;
+using DrunkCompany.Scripts;
 
 namespace DrunkCompany
 {
@@ -25,8 +26,9 @@ namespace DrunkCompany
 			Instance = this;
 
 			Patch();
-
+			
 			Logger.LogInfo($"{MyPluginInfo.PLUGIN_GUID} v{MyPluginInfo.PLUGIN_VERSION} has loaded!");
+
 		}
 
 		internal static void Patch()

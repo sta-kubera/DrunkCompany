@@ -1,23 +1,23 @@
-﻿//using GameNetcodeStuff;
-//using HarmonyLib;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
+﻿using DrunkCompany.Scripts;
+using DrunkCompany;
+using HarmonyLib;
+using System.Threading;
 
-////namespace DrunkCompany.Patches
-////{
-////	[HarmonyPatch(typeof(StartOfRound))]
-////	internal class StartOfRoundPatch
-////	{
-////		[HarmonyPatch("Start")]
-////		[HarmonyPostfix]
-////		public static void StartPostFix()
-////		{
-////			PlayerControllerB player = GameNetworkManager.Instance.localPlayerController; // local player
-////			UnlockableSuit[] suits = StartOfRound.Instance.unlockablesList.unlockables.Where(u => u.unlockableType == 0); // 0 = suit
-////			UnlockableSuit suit = ...; // idk, it can be random if you want
-////			suit.SwitchSuitToThis(player);
-////		}
-////	}
-////}
+
+namespace DrunkCompany.Patches
+{
+	[HarmonyPatch(typeof(StartOfRound))]
+	internal class StartMatchLeverPatch
+	{
+		//Waits till the ship lands to determine who captain is
+		[HarmonyPatch("ResetStats")]
+		[HarmonyPrefix]
+		public static void SendingMessagePatch()
+		{
+
+			DrunkCompany.Logger.LogMessage("This is a test");
+			DrunkCompany.Logger.LogMessage("sending message function ran");
+			NetworkManager.DetermineCaptain();
+		}
+	}
+}

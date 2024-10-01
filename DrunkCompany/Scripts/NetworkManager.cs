@@ -5,6 +5,12 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 using DrunkCompany;
+using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using BepInEx;
+using System.IO;
+using System.Threading;
 
 namespace DrunkCompany.Scripts
 {
@@ -17,9 +23,11 @@ namespace DrunkCompany.Scripts
 		//Used to keep track of the first death player
         internal static List<string> deadPlayers = new List<string>();
 
+		public static List<string> PosterFolders = new List<string>();
+
 
 		//Method to send a message to all players in their HUD
-        [ClientRpc]
+		[ClientRpc]
         public static void ShowHudMessageClientRpc(string name)
         {
 			DrunkCompany.Logger.LogMessage($"this function has ran {name}");
@@ -31,8 +39,10 @@ namespace DrunkCompany.Scripts
 		//Method to randomly select a captain from currentPlayers List
         public static void DetermineCaptain()
         {
+			
 			DrunkCompany.Logger.LogMessage("Determine Captain function was ran");
-            deadPlayers.Clear();
+			//CreateBitmapImage();
+			deadPlayers.Clear();
             currentPlayers.Clear();
 
 			//Loops through players in the lobby and adds them to currentPlayers List
@@ -44,15 +54,20 @@ namespace DrunkCompany.Scripts
 					DrunkCompany.Logger.LogMessage($"Adding Player {player} to currentPlayers");
 					DrunkCompany.Logger.LogMessage($"Adding Player with client ID {player.actualClientId} to currentPlayers");
 					DrunkCompany.Logger.LogMessage($"Adding Player with username {player.playerUsername} to currentPlayers");
-					//TeamSuitOrganizerClientRpc(player, 1);
-					//TeamSuitOrganizerAllClientRpc(1);
+					Material material = StartOfRound.Instance.unlockablesList.unlockables[30].suitMaterial;
+					player.thisPlayerModel.material = material;
+					player.thisPlayerModelLOD1.material = material;
+					player.thisPlayerModelLOD2.material = material;
+					player.thisPlayerModelArms.material = material;
+					player.currentSuitID = 30;
 					currentPlayers.Add(player);
                 }
             }
 			
 			
-            PlayerControllerB Captain = currentPlayers[Random.Range(0, currentPlayers.Count())];
+            PlayerControllerB Captain = currentPlayers[UnityEngine.Random.Range(0, currentPlayers.Count())];
 
+			
 			ShowHudMessageClientRpc(Captain.playerUsername);
 
 
@@ -73,29 +88,63 @@ namespace DrunkCompany.Scripts
             }
         }
 
-		//Test method to switch suit for specific player
-		//Currently breaks game
 		[ClientRpc]
-		public static void TeamSuitOrganizerClientRpc(PlayerControllerB player, int suitID)
+		public static void SetPlayerSuit(PlayerControllerB player)
 		{
-			DrunkCompany.Logger.LogMessage("The team organizer function got ran");
-			UnlockableSuit.SwitchSuitForPlayer(player, suitID);
-
-			
-
+			Material material = StartOfRound.Instance.unlockablesList.unlockables[30].suitMaterial;
+			player.thisPlayerModel.material = material;
+			player.thisPlayerModelLOD1.material = material;
+			player.thisPlayerModelLOD2.material = material;
+			player.thisPlayerModelArms.material = material;
+			player.currentSuitID = 30;
 		}
 
-		//Test method to switch suit for all players
-		//Currently works, but need to fix it to change for individual players
-		[ClientRpc]
-		public static void TeamSuitOrganizerAllClientRpc(int suitID)
-		{
-			DrunkCompany.Logger.LogMessage("The team organizer function got ran for all players");
-			UnlockableSuit.SwitchSuitForAllPlayers(suitID);
+
+
+		//public static Bitmap CreateBitmapImage()
+		//{
+		//	DrunkCompany.Logger.LogMessage("Bitmap function was ran");
+		//	string sImageText = "test";
+		//	Bitmap objBmpImage = new Bitmap(2, 2);
+
+		//	int intWidth = 256;
+		//	int intHeight = 256;
+
+		//	// Create the Font object for the image text drawing.
+		//	System.Drawing.Font objFont = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+
+		//	// Create a graphics object to measure the text's width and height.
+		//	System.Drawing.Graphics objGraphics = System.Drawing.Graphics.FromImage(objBmpImage);
+
+		//	// This is where the bitmap size is determined.
+		//	intWidth = (int)objGraphics.MeasureString(sImageText, objFont).Width;
+		//	intHeight = (int)objGraphics.MeasureString(sImageText, objFont).Height;
+
+		//	// Create the bmpImage again with the correct size for the text and font.
+		//	objBmpImage = new Bitmap(objBmpImage, new Size(intWidth, intHeight));
+
+
+		//	// Add the colors to the new bitmap.
+		//	objGraphics = System.Drawing.Graphics.FromImage(objBmpImage);
+
+		//	// Set Background color
+
+		//	objGraphics.Clear(System.Drawing.Color.White);
+		//	objGraphics.SmoothingMode = SmoothingMode.HighQuality;
 
 
 
-		}
+		//	objGraphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
+		//	objGraphics.DrawString(sImageText, objFont, new SolidBrush(System.Drawing.Color.Black), 0, 0, StringFormat.GenericDefault);
+
+		//	objGraphics.Flush();
+
+		//	objBmpImage.Save($"{Paths.PluginPath}test.png");
+
+		//	DrunkCompany.Logger.LogMessage($"Bitmap function was saved to this path: {Paths.PluginPath}");
+		//	return (objBmpImage);
+
+		//}
 
 
 	}
