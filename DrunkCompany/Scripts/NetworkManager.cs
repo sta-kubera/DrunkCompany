@@ -73,77 +73,53 @@ namespace DrunkCompany.Scripts
 			ShowHudMessageClientRpc(captain.playerUsername);
 			List<PlayerControllerB> remainingPlayers = currentPlayers.Skip(1).ToList();  // Remaining players in one group
 
-			if (currentPlayers.Count <= 4)
-			{
-				
+			
 
-				if (remainingPlayers.Count > 0)
-				{
-					// Assign one color to the remaining group
-					int color = colors[0];  // Assign first color
-					Console.WriteLine($"Group {color}: {string.Join(", ", remainingPlayers)}");
-				}
-				else
-				{
-					Console.WriteLine("No players to group.");
-				}
-
-			}
-			else
-			{
 				// Case 2: More than 4 players, regular group splitting logic
 
 				// Split players into groups of 2
-				List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 2);
+			List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 2);
 
 				// Check for single-player group and promote them to captain
 				
-				for (int i = 0; i < groups.Count; i++)
+			for (int i = 0; i < groups.Count; i++)
+			{
+				if (groups[i].Count == 1)
 				{
-					if (groups[i].Count == 1)
+					PlayerControllerB leftoverPlayer = groups[i][0];
+					groups.Remove(groups[i]);
+					if (groups[i-1] != null)
 					{
-						PlayerControllerB leftoverPlayer = groups[i][0];
-						groups.Remove(groups[i]);
-						if (groups[i-1] != null)
-						{
-							groups[i - 1].Add(leftoverPlayer);
-						}
-						break;
+						groups[i - 1].Add(leftoverPlayer);
 					}
-				}
-
-				// Assign colors to each group 
-				Console.WriteLine("Groups with assigned colors:");
-				for (int i = 0; i < groups.Count; i++)
-				{
-					int color = colors[i % colors.Count];
-					foreach (PlayerControllerB player in groups[i]) {
-						DrunkCompany.Logger.LogMessage($"This is the player:  {player}");
-						DrunkCompany.Logger.LogMessage($"This is the color for suit:  {color}");
-						SetPlayerSuit(player, color);
-					}
-
-				
-					Console.WriteLine($"Group {color}: {string.Join(", ", groups[i])}");
-				}
-
-				// Print the captain, if there is one
-				if (captain == null)
-				{
-					Console.WriteLine($"Captain is: {captain}");
-				}
-				else
-				{
-					Console.WriteLine("All players are evenly grouped.");
+					break;
 				}
 			}
 
-			//List<PlayerControllerB> players = GetTeamList();
-			//PlayerControllerB Captain = currentPlayers[UnityEngine.Random.Range(0, currentPlayers.Count())];
+				// Assign colors to each group 
+			Console.WriteLine("Groups with assigned colors:");
+			for (int i = 0; i < groups.Count; i++)
+			{
+				int color = colors[i % colors.Count];
+				foreach (PlayerControllerB player in groups[i]) {
+					DrunkCompany.Logger.LogMessage($"This is the player:  {player}");
+					DrunkCompany.Logger.LogMessage($"This is the color for suit:  {color}");
+					SetPlayerSuit(player, color);
+				}
 
+				
+				Console.WriteLine($"Group {color}: {string.Join(", ", groups[i])}");
+			}
 
-			
-
+				// Print the captain, if there is one
+			if (captain == null)
+			{
+				Console.WriteLine($"Captain is: {captain}");
+			}
+			else
+			{
+				Console.WriteLine("All players are evenly grouped.");
+			}
 
         }
 		// Shuffle the list of players using LINQ and a random number generator
