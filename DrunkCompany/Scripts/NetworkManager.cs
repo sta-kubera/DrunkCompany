@@ -71,54 +71,63 @@ namespace DrunkCompany.Scripts
 			// Case 1: When player count is 4 or fewer
 			PlayerControllerB captain = currentPlayers[0];  // First player becomes captain
 			ShowHudMessageClientRpc(captain.playerUsername);
+			SetPlayerSuit(captain, 32);
 			List<PlayerControllerB> remainingPlayers = currentPlayers.Skip(1).ToList();  // Remaining players in one group
 
-			
 
-				// Case 2: More than 4 players, regular group splitting logic
 
-				// Split players into groups of 2
+			// Case 2: More than 4 players, regular group splitting logic
+
+			// Split players into groups of 2
+			DrunkCompany.Logger.LogMessage($"This is the remaining players before groups  {remainingPlayers.Count}");
 			List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 2);
 
-				// Check for single-player group and promote them to captain
-				
-			for (int i = 0; i < groups.Count; i++)
+			if (groups[0].Count == 1)
 			{
-				if (groups[i].Count == 1)
+				//do nothing
+			}
+			else
+			{
+				for (int i = 0; i < groups.Count; i++)
 				{
-					PlayerControllerB leftoverPlayer = groups[i][0];
-					groups.Remove(groups[i]);
-					if (groups[i-1] != null)
+
+					if (groups[i].Count == 1 && i > 0)
 					{
-						groups[i - 1].Add(leftoverPlayer);
+						PlayerControllerB leftoverPlayer = groups[i][0];
+						groups.Remove(groups[i]);
+						if (i - 1 >= 0)
+						{
+							groups[i - 1].Add(leftoverPlayer);
+						}
+						break;
 					}
-					break;
 				}
 			}
 
-				// Assign colors to each group 
-			Console.WriteLine("Groups with assigned colors:");
+
+
+			// Assign colors to each group 
+			DrunkCompany.Logger.LogMessage($"This is the player before color function:  {groups.Count}");
 			for (int i = 0; i < groups.Count; i++)
 			{
+				
 				int color = colors[i % colors.Count];
 				foreach (PlayerControllerB player in groups[i]) {
+					DrunkCompany.Logger.LogMessage($"Group {color}: {string.Join(", ", groups[i])}");
 					DrunkCompany.Logger.LogMessage($"This is the player:  {player}");
 					DrunkCompany.Logger.LogMessage($"This is the color for suit:  {color}");
 					SetPlayerSuit(player, color);
-				}
-
-				
-				Console.WriteLine($"Group {color}: {string.Join(", ", groups[i])}");
+				}	
 			}
 
 				// Print the captain, if there is one
 			if (captain == null)
 			{
-				Console.WriteLine($"Captain is: {captain}");
+				DrunkCompany.Logger.LogMessage($"Captain is: {captain}");
 			}
 			else
 			{
-				Console.WriteLine("All players are evenly grouped.");
+				DrunkCompany.Logger.LogMessage("All players are evenly grouped.");
 			}
 
         }
@@ -132,10 +141,14 @@ namespace DrunkCompany.Scripts
 		// Splits the list into groups of a specified size using LINQ
 		private static List<List<PlayerControllerB>> GetGroupList(List<PlayerControllerB> list, int numInGroup)
 		{
-			return list.Select((player, index) => new { player, index })
-					   .GroupBy(x => x.index / numInGroup)
-					   .Select(group => group.Select(x => x.player).ToList())
-					   .ToList();
+			if (list.Count <= numInGroup)
+			{
+				return new List<List<PlayerControllerB>> { list };
+			}
+				return list.Select((player, index) => new { player, index })
+						   .GroupBy(x => x.index / numInGroup)
+						   .Select(group => group.Select(x => x.player).ToList())
+						   .ToList();
 		}
 
 		//Method to send first death warning HUD message to all players
