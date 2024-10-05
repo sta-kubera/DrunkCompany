@@ -7,6 +7,7 @@ using UnityEngine;
 using System;
 using DrunkCompany;
 using BepInEx;
+using Unity.Services.Authentication.Internal;
 
 
 
@@ -44,7 +45,7 @@ namespace DrunkCompany.Scripts
 		}
 
 		//Method to randomly select a captain from currentPlayers List
-        public static void DetermineCaptain()
+        public static void DetermineTeams()
         {
 			
 			DrunkCompany.Logger.LogMessage("Determine Captain function was ran");
@@ -60,12 +61,7 @@ namespace DrunkCompany.Scripts
 					DrunkCompany.Logger.LogMessage($"Adding Player {player} to currentPlayers");
 					DrunkCompany.Logger.LogMessage($"Adding Player with client ID {player.actualClientId} to currentPlayers");
 					DrunkCompany.Logger.LogMessage($"Adding Player with username {player.playerUsername} to currentPlayers");
-					Material material = StartOfRound.Instance.unlockablesList.unlockables[30].suitMaterial;
-					player.thisPlayerModel.material = material;
-					player.thisPlayerModelLOD1.material = material;
-					player.thisPlayerModelLOD2.material = material;
-					player.thisPlayerModelArms.material = material;
-					player.currentSuitID = 30;
+
 					currentPlayers.Add(player);
                 }
             }
@@ -73,18 +69,19 @@ namespace DrunkCompany.Scripts
 			
 			currentPlayers = Shuffle(currentPlayers);
 			// Case 1: When player count is 4 or fewer
+			PlayerControllerB captain = currentPlayers[0];  // First player becomes captain
+			ShowHudMessageClientRpc(captain.playerUsername);
+			List<PlayerControllerB> remainingPlayers = currentPlayers.Skip(1).ToList();  // Remaining players in one group
+
 			if (currentPlayers.Count <= 4)
 			{
-				PlayerControllerB captain = currentPlayers[0];  // First player becomes captain
-				List<PlayerControllerB> group = currentPlayers.Skip(1).ToList();  // Remaining players in one group
+				
 
-				Console.WriteLine($"Captain is: {captain}");
-
-				if (group.Count > 0)
+				if (remainingPlayers.Count > 0)
 				{
 					// Assign one color to the remaining group
 					int color = colors[0];  // Assign first color
-					Console.WriteLine($"Group {color}: {string.Join(", ", group)}");
+					Console.WriteLine($"Group {color}: {string.Join(", ", remainingPlayers)}");
 				}
 				else
 				{
@@ -97,16 +94,20 @@ namespace DrunkCompany.Scripts
 				// Case 2: More than 4 players, regular group splitting logic
 
 				// Split players into groups of 2
-				List<List<PlayerControllerB>> groups = GetGroupList(currentPlayers, 2);
+				List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 2);
 
 				// Check for single-player group and promote them to captain
-				PlayerControllerB captain = null;
-				foreach (var group in groups)
+				
+				for (int i = 0; i < groups.Count; i++)
 				{
-					if (group.Count == 1)
+					if (groups[i].Count == 1)
 					{
-						captain = group[0];
-						groups.Remove(group);
+						PlayerControllerB leftoverPlayer = groups[i][0];
+						groups.Remove(groups[i]);
+						if (groups[i-1] != null)
+						{
+							groups[i - 1].Add(leftoverPlayer);
+						}
 						break;
 					}
 				}
@@ -116,6 +117,13 @@ namespace DrunkCompany.Scripts
 				for (int i = 0; i < groups.Count; i++)
 				{
 					int color = colors[i % colors.Count];
+					foreach (PlayerControllerB player in groups[i]) {
+						DrunkCompany.Logger.LogMessage($"This is the player:  {player}");
+						DrunkCompany.Logger.LogMessage($"This is the color for suit:  {color}");
+						SetPlayerSuit(player, color);
+					}
+
+				
 					Console.WriteLine($"Group {color}: {string.Join(", ", groups[i])}");
 				}
 
@@ -134,7 +142,7 @@ namespace DrunkCompany.Scripts
 			//PlayerControllerB Captain = currentPlayers[UnityEngine.Random.Range(0, currentPlayers.Count())];
 
 
-			ShowHudMessageClientRpc(Captain.playerUsername);
+			
 
 
         }
@@ -145,22 +153,6 @@ namespace DrunkCompany.Scripts
 			return list.OrderBy(x => rng.Next()).ToList();
 		}
 
-		//// Returns a list of players with random generation (2 to 10 players)
-		//private static List<PlayerControllerB> GetTeamList()
-		//{
-		//	System.Random rng = new System.Random();
-		//	int numPlayers = rng.Next(2, 11);  // Randomly choose between 2 to 10 players
-		//	List<PlayerControllerB> playerList = new List<PlayerControllerB>();
-
-		//	for (int i = 1; i <= numPlayers; i++)
-		//	{
-		//		playerList.Add("Player" + i);
-		//	}
-
-		//	// Print the players in the lobby
-		//	Console.WriteLine("Players in Lobby: " + string.Join(", ", playerList));
-		//	return playerList;
-		//}
 		// Splits the list into groups of a specified size using LINQ
 		private static List<List<PlayerControllerB>> GetGroupList(List<PlayerControllerB> list, int numInGroup)
 		{
@@ -187,6 +179,9 @@ namespace DrunkCompany.Scripts
 
 		public static void SetPlayerSuit(PlayerControllerB player, int suitID)
 		{
+
+			DrunkCompany.Logger.LogMessage($"This is the playerId {player}");
+			DrunkCompany.Logger.LogMessage($"This is the suitID {suitID}");
 			Material material = StartOfRound.Instance.unlockablesList.unlockables[suitID].suitMaterial;
 			player.thisPlayerModel.material = material;
 			player.thisPlayerModelLOD1.material = material;

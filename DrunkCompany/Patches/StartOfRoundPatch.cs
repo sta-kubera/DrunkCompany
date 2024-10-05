@@ -17,7 +17,7 @@ namespace DrunkCompany.Patches
 
 			DrunkCompany.Logger.LogMessage("This is a test");
 			DrunkCompany.Logger.LogMessage("sending message function ran");
-			NetworkManager.DetermineCaptain();
+			NetworkManager.DetermineTeams();
 		}
 	}
 }
