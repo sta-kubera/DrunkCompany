@@ -14,41 +14,42 @@ using Unity.Services.Authentication.Internal;
 namespace DrunkCompany.Scripts
 {
     [StaticNetcode]
-    class NetworkManager : MonoBehaviour
-    {
+    class NetworkM : MonoBehaviour
+	{
 		//Used to create a list of players in the lobby
         internal static List<PlayerControllerB> currentPlayers = new List<PlayerControllerB>();
-		
+
 		//Suit ID:
-		//Red = 32
-		//Cyan = 28
-		//Dandelion = 29
-		//Orange = 0
-		//Neon Green = 30
+		//Red = 33
+		//purple = 32
 		//Pink = 31
-		//white = 33
-		private static List<int> colors = new List<int> { 28, 29, 0, 30, 31, 33 };
+		//Neon Green = 30
+		//Dandelion = 29
+		//Cyan = 28
+		//Orange = 0
+
+		//private static List<int> colors = new List<int> { 28, 29, 32, 30, 31, 0 };
+		private static List<int> colors = new List<int> { 33, 32, 31, 30, 29, 0 };
 
 		//Used to keep track of the first death player
 		internal static List<string> deadPlayers = new List<string>();
 
 		public static List<string> PosterFolders = new List<string>();
-
+		
+		//PlayerControllerB captain;
 
 		//Method to send a message to all players in their HUD
 		[ClientRpc]
         public static void ShowHudMessageClientRpc(string name)
         {
-			DrunkCompany.Logger.LogMessage($"this function has ran {name}");
-			DrunkCompany.Logger.LogMessage($"This the current list {currentPlayers}");
-			HUDManager.Instance.DisplayTip("The captain", $"{name} has be designated.");
+			HUDManager.Instance.DisplayTip("The captain is", $"{name}");
 		}
 
 		//Method to randomly select a captain from currentPlayers List
-        public static void DetermineTeams()
+		[ServerRpc]
+		public static void DetermineTeamsServerRpc()
         {
-			
-			DrunkCompany.Logger.LogMessage("Determine Captain function was ran");
+			int randomSeed = UnityEngine.Random.Range(1, 10000);
 			deadPlayers.Clear();
             currentPlayers.Clear();
 
@@ -58,29 +59,22 @@ namespace DrunkCompany.Scripts
             {
 				if (!player.isPlayerControlled || player.isPlayerDead) { continue; }
                 {
-					DrunkCompany.Logger.LogMessage($"Adding Player {player} to currentPlayers");
-					DrunkCompany.Logger.LogMessage($"Adding Player with client ID {player.actualClientId} to currentPlayers");
-					DrunkCompany.Logger.LogMessage($"Adding Player with username {player.playerUsername} to currentPlayers");
-
 					currentPlayers.Add(player);
                 }
             }
 
 			
-			currentPlayers = Shuffle(currentPlayers);
-			// Case 1: When player count is 4 or fewer
+			currentPlayers = Shuffle(currentPlayers, randomSeed);  // Shuffles players
 			PlayerControllerB captain = currentPlayers[0];  // First player becomes captain
 			ShowHudMessageClientRpc(captain.playerUsername);
-			SetPlayerSuit(captain, 32);
+			SetPlayerSuitClientRpc(captain, 34);
 			List<PlayerControllerB> remainingPlayers = currentPlayers.Skip(1).ToList();  // Remaining players in one group
 
 
 
-			// Case 2: More than 4 players, regular group splitting logic
 
 			// Split players into groups of 2
-			DrunkCompany.Logger.LogMessage($"This is the remaining players before groups  {remainingPlayers.Count}");
-			List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 2);
+			List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 1);
 
 			if (groups[0].Count == 1)
 			{
@@ -104,37 +98,20 @@ namespace DrunkCompany.Scripts
 				}
 			}
 
-
-
 			// Assign colors to each group 
-			DrunkCompany.Logger.LogMessage($"This is the player before color function:  {groups.Count}");
 			for (int i = 0; i < groups.Count; i++)
 			{
-				
 				int color = colors[i % colors.Count];
 				foreach (PlayerControllerB player in groups[i]) {
-					DrunkCompany.Logger.LogMessage($"Group {color}: {string.Join(", ", groups[i])}");
-					DrunkCompany.Logger.LogMessage($"This is the player:  {player}");
-					DrunkCompany.Logger.LogMessage($"This is the color for suit:  {color}");
-					SetPlayerSuit(player, color);
+					SetPlayerSuitClientRpc(player, color);
 				}	
-			}
-
-				// Print the captain, if there is one
-			if (captain == null)
-			{
-				DrunkCompany.Logger.LogMessage($"Captain is: {captain}");
-			}
-			else
-			{
-				DrunkCompany.Logger.LogMessage("All players are evenly grouped.");
 			}
 
         }
 		// Shuffle the list of players using LINQ and a random number generator
-		private static List<PlayerControllerB> Shuffle(List<PlayerControllerB> list)
+		private static List<PlayerControllerB> Shuffle(List<PlayerControllerB> list, int randomSeed)
 		{
-			System.Random rng = new System.Random();
+			System.Random rng = new System.Random(randomSeed);
 			return list.OrderBy(x => rng.Next()).ToList();
 		}
 
@@ -156,27 +133,24 @@ namespace DrunkCompany.Scripts
         public static void DeathWarningClientRpc(int playerId)
         {
             PlayerControllerB firstDeath = currentPlayers[playerId];
-			DrunkCompany.Logger.LogMessage($"The amount of dead players currently {deadPlayers.Count()}");
-			DrunkCompany.Logger.LogMessage($"This is the playerId {firstDeath.playerUsername}");
-			DrunkCompany.Logger.LogMessage($"This is the playerId {currentPlayers[playerId]}");
 			if (deadPlayers.Count() == 0)
             {
-                HUDManager.Instance.DisplayTip("Someone has died", "This is their name " + firstDeath.playerUsername, isWarning: true);
+                HUDManager.Instance.DisplayTip(firstDeath.playerUsername, "The first person to die!", isWarning: true);
                 deadPlayers.Add(firstDeath.playerUsername);
             }
         }
 
-		public static void SetPlayerSuit(PlayerControllerB player, int suitID)
+		[ClientRpc]
+		public static void SetPlayerSuitClientRpc(PlayerControllerB player, int suitID)
 		{
-
-			DrunkCompany.Logger.LogMessage($"This is the playerId {player}");
-			DrunkCompany.Logger.LogMessage($"This is the suitID {suitID}");
 			Material material = StartOfRound.Instance.unlockablesList.unlockables[suitID].suitMaterial;
 			player.thisPlayerModel.material = material;
 			player.thisPlayerModelLOD1.material = material;
 			player.thisPlayerModelLOD2.material = material;
 			player.thisPlayerModelArms.material = material;
 			player.currentSuitID = suitID;
+			DrunkCompany.Logger.LogMessage($"This is the suitID: {suitID} and this is the player: {player}");
 		}
 	}
+
 }

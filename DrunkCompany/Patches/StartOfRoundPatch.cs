@@ -1,7 +1,9 @@
 ﻿using DrunkCompany.Scripts;
 using DrunkCompany;
 using HarmonyLib;
+using GameNetcodeStuff;
 using System.Threading;
+using Unity.Netcode;
 
 
 namespace DrunkCompany.Patches
@@ -9,15 +11,13 @@ namespace DrunkCompany.Patches
 	[HarmonyPatch(typeof(StartOfRound))]
 	internal class StartMatchLeverPatch
 	{
-		//Waits till the ship lands to determine who captain is
+		//Waits till the stats reset to DetermineTeams
 		[HarmonyPatch("ResetStats")]
-		[HarmonyPrefix]
+		[HarmonyPostfix]
 		public static void SendingMessagePatch()
 		{
-
-			DrunkCompany.Logger.LogMessage("This is a test");
-			DrunkCompany.Logger.LogMessage("sending message function ran");
-			NetworkManager.DetermineTeams();
+			if (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer)
+				NetworkM.DetermineTeamsServerRpc();
 		}
 	}
 }

@@ -16,9 +16,7 @@ namespace DrunkCompany.Patches
 		[HarmonyPrefix]
 		public static void SendingDeathWarning(ref int playerId)
 		{
-
-			DrunkCompany.Logger.LogMessage("sending death Warning Ran");
-			NetworkManager.DeathWarningClientRpc(playerId);
+			NetworkM.DeathWarningClientRpc(playerId);
 
 		}
 	}

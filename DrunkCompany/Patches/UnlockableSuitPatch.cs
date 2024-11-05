@@ -1,5 +1,6 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
+using System.Xml.Linq;
 
 
 namespace DrunkCompany.Patches
@@ -12,7 +13,7 @@ namespace DrunkCompany.Patches
 		[HarmonyPatch(typeof(UnlockableSuit), nameof(UnlockableSuit.SwitchSuitForPlayer))]
 		private static bool SuppressCallIfNeeded(PlayerControllerB player, int suitID)
 		{
-			DrunkCompany.Logger.LogMessage($"The player client ID {player.playerClientId}, the player ID {player} tried to switch suits to {suitID}");
+			DrunkCompany.Logger.LogMessage($"this function has ran {suitID}");
 			return false;
 		}
 
