@@ -13,9 +13,6 @@ namespace DrunkCompany
 
 	public class DrunkCompany : BaseUnityPlugin
 	{
-		private const string GUID = "sta.drunkcompany";
-		private const string NAME = "DrunkCompany";
-		private const string VERSION = "1.0.0";
 		public static DrunkCompany Instance { get; private set; } = null!;
 		internal new static ManualLogSource Logger { get; private set; } = null!;
 		internal static Harmony? Harmony { get; set; }
