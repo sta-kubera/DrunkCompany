@@ -40,9 +40,10 @@ namespace DrunkCompany.Scripts
 
 		//Method to send a message to all players in their HUD
 		[ClientRpc]
-        public static void ShowHudMessageClientRpc(string name)
+        public static void ShowHudMessageClientRpc(NetworkBehaviourReference captain)
         {
-			HUDManager.Instance.DisplayTip("The captain is", $"{name}");
+			PlayerControllerB playerB = (PlayerControllerB)captain;
+			HUDManager.Instance.DisplayTip("The captain is", $"{playerB.playerUsername}");
 		}
 
 		//Method to randomly select a captain from currentPlayers List
@@ -65,16 +66,14 @@ namespace DrunkCompany.Scripts
 
 			
 			currentPlayers = Shuffle(currentPlayers, randomSeed);  // Shuffles players
-			PlayerControllerB captain = currentPlayers[0];  // First player becomes captain
-			ShowHudMessageClientRpc(captain.playerUsername);
+			NetworkBehaviourReference captain = currentPlayers[0];  // First player becomes captain
+			ShowHudMessageClientRpc(captain);
 			SetPlayerSuitClientRpc(captain, 34);
 			List<PlayerControllerB> remainingPlayers = currentPlayers.Skip(1).ToList();  // Remaining players in one group
 
 
-
-
 			// Split players into groups of 2
-			List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 1);
+			List<List<PlayerControllerB>> groups = GetGroupList(remainingPlayers, 2);
 
 			if (groups[0].Count == 1)
 			{
@@ -102,7 +101,7 @@ namespace DrunkCompany.Scripts
 			for (int i = 0; i < groups.Count; i++)
 			{
 				int color = colors[i % colors.Count];
-				foreach (PlayerControllerB player in groups[i]) {
+				foreach (NetworkBehaviourReference player in groups[i]) {
 					SetPlayerSuitClientRpc(player, color);
 				}	
 			}
@@ -132,7 +131,8 @@ namespace DrunkCompany.Scripts
 		[ClientRpc]
         public static void DeathWarningClientRpc(int playerId)
         {
-            PlayerControllerB firstDeath = currentPlayers[playerId];
+			DrunkCompany.Logger.LogMessage($"This is the playerID: {playerId} and this is the player from current players: {currentPlayers[playerId]}");
+			PlayerControllerB firstDeath = currentPlayers[playerId];
 			if (deadPlayers.Count() == 0)
             {
                 HUDManager.Instance.DisplayTip(firstDeath.playerUsername, "The first person to die!", isWarning: true);
@@ -141,15 +141,16 @@ namespace DrunkCompany.Scripts
         }
 
 		[ClientRpc]
-		public static void SetPlayerSuitClientRpc(PlayerControllerB player, int suitID)
+		public static void SetPlayerSuitClientRpc(NetworkBehaviourReference player, int suitID)
 		{
+			PlayerControllerB playerB = (PlayerControllerB)player;
 			Material material = StartOfRound.Instance.unlockablesList.unlockables[suitID].suitMaterial;
-			player.thisPlayerModel.material = material;
-			player.thisPlayerModelLOD1.material = material;
-			player.thisPlayerModelLOD2.material = material;
-			player.thisPlayerModelArms.material = material;
-			player.currentSuitID = suitID;
-			DrunkCompany.Logger.LogMessage($"This is the suitID: {suitID} and this is the player: {player}");
+			playerB.thisPlayerModel.material = material;
+			playerB.thisPlayerModelLOD1.material = material;
+			playerB.thisPlayerModelLOD2.material = material;
+			playerB.thisPlayerModelArms.material = material;
+			playerB.currentSuitID = suitID;
+			DrunkCompany.Logger.LogMessage($"This is the suitID: {suitID} and this is the player: {playerB}");
 		}
 	}
 
