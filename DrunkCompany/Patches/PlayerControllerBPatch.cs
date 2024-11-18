@@ -13,9 +13,11 @@ namespace DrunkCompany.Patches
 		//Listens for the first player to die each round
 		
 		[HarmonyPatch("KillPlayerServerRpc")]
-		[HarmonyPrefix]
+		[HarmonyPostfix]
 		public static void SendingDeathWarning(ref int playerId)
 		{
+			
+			DrunkCompany.Logger.LogDebug($"This is the playerId from serverDeathWarning: {playerId}");
 			NetworkM.DeathWarningClientRpc(playerId);
 
 		}

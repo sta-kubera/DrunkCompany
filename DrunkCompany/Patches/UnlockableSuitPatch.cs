@@ -13,7 +13,7 @@ namespace DrunkCompany.Patches
 		[HarmonyPatch(typeof(UnlockableSuit), nameof(UnlockableSuit.SwitchSuitForPlayer))]
 		private static bool SuppressCallIfNeeded(PlayerControllerB player, int suitID)
 		{
-			DrunkCompany.Logger.LogDebug($"this function has ran {suitID}");
+			DrunkCompany.Logger.LogMessage($"this function has ran {suitID}");
 			return false;
 		}
 
